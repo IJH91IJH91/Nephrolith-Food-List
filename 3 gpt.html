@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Food Micronutrient Viewer — Kidney Stones</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22d3ee; --warn:#f59e0b; --bad:#ef4444; --good:#10b981;
+    --ring: 0 0 0 2px rgba(34,211,238,.5);
+  }
+  html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b1020,#0b1226 35%,#0e152f);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  header{padding:24px 20px 8px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  header h1{font-size:20px;font-weight:700;margin:0;letter-spacing:.2px}
+  header .badge{padding:4px 10px;border-radius:999px;background:#0d2436;border:1px solid #133a4b;color:#a7f3d0;font-size:12px}
+  .wrap{padding:10px 16px 32px;max-width:1100px;margin:0 auto}
+  .panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px}
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+  .controls > div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  label{font-size:12px;color:var(--muted)}
+  input[type="text"],select,input[type="number"],input[type="range"]{
+    background:#0b1b2a;border:1px solid #183142;border-radius:10px;color:var(--text);padding:10px 12px;font-size:14px;outline:none
+  }
+  input[type="text"]:focus,select:focus,input[type="number"]:focus{box-shadow:var(--ring);border-color:#1f9fb4}
+  button{background:#0e2633;border:1px solid #1b4658;color:#e6fbff;border-radius:10px;padding:10px 12px;font-size:14px;cursor:pointer}
+  button:hover{transform:translateY(-1px)}
+  .grid{margin-top:14px}
+  table{width:100%;border-collapse:separate;border-spacing:0 8px}
+  thead th{font-size:12px;color:#a5b4fc;text-align:left;padding:8px 10px}
+  tbody tr{background:#0b1b2a;border:1px solid #183142}
+  tbody td{padding:10px}
+  .row{border-radius:12px;overflow:hidden}
+  .pill{padding:4px 8px;border-radius:999px;font-size:12px}
+  .pill.bad{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+  .pill.warn{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#fde68a}
+  .pill.good{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#bbf7d0}
+  .muted{color:var(--muted)}
+  .footer{margin-top:18px;font-size:12px;color:#93c5fd}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap}
+  .card{background:#0b1b2a;border:1px solid #183142;border-radius:12px;padding:10px;min-width:180px}
+  details summary{cursor:pointer;color:#a7f3d0}
+  .range-row{display:flex;gap:8px;align-items:center}
+  .range-row output{min-width:60px;text-align:right}
+  .note{font-size:12px;color:#a7f3d0;margin-left:6px}
+</style>
+</head>
+<body>
+  <header class="wrap">
+    <h1>Food Micronutrient Viewer</h1>
+    <span class="badge">Offline • No trackers • Client-side</span>
+  </header>
+
+  <div class="wrap">
+    <div class="panel">
+      <div class="controls">
+        <div>
+          <label for="q">Search foods</label>
+          <input id="q" type="text" placeholder="e.g., spinach, yogurt, sardines">
+          <button id="clr">Clear</button>
+        </div>
+        <div>
+          <label for="stone">Stone type focus</label>
+          <select id="stone">
+            <option value="all">All / general</option>
+            <option value="caox">Calcium oxalate</option>
+            <option value="cap">Calcium phosphate</option>
+            <option value="uric">Uric acid</option>
+            <option value="cys">Cystine</option>
+            <option value="struvite">Struvite (see guide)</option>
+          </select>
+          <button id="guideBtn">Guide</button>
+          <input id="file" type="file" accept=".csv,.json" />
+          <button id="export">Export visible CSV</button>
+        </div>
+      </div>
+
+      <div id="thresholds" class="kpi" style="margin-top:12px">
+        <!-- Threshold sliders -->
+        <div class="card">
+          <div class="range-row">
+            <label>Purines ≥ <output id="purOut">150</output> mg/100g</label>
+          </div>
+          <input id="purThr" type="range" min="0" max="500" step="10" value="150" />
+          <div class="muted">Proxy for uric-acid stone risk</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Oxalate ≥ <output id="oxaOut">20</output> mg/serving</label>
+          </div>
+          <input id="oxaThr" type="range" min="0" max="300" step="5" value="20" />
+          <div class="muted">Higher-oxalate foods to limit (CaOx)</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Cystine ≥ <output id="cysOut">600</output> mg/100g</label>
+          </div>
+          <input id="cysThr" type="range" min="0" max="2000" step="50" value="600" />
+          <div class="muted">Amino acid “cystine” content</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Calcium ≥ <output id="calOut">150</output> mg/serving</label>
+          </div>
+          <input id="calThr" type="range" min="0" max="600" step="10" value="150" />
+          <div class="muted">Used as a “calcium source” marker</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Phosphorus ≥ <output id="phosOut">300</output> mg/serving</label>
+          </div>
+          <input id="phosThr" type="range" min="0" max="1000" step="10" value="300" />
+          <div class="muted">Higher phosphorus → warn (CaP)</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Magnesium ≥ <output id="magOut">50</output> mg/serving</label>
+          </div>
+          <input id="magThr" type="range" min="0" max="300" step="5" value="50" />
+          <div class="muted">Magnesium can complex oxalate</div>
+        </div>
+        <div class="card">
+          <div class="range-row">
+            <label>Citrate ≥ <output id="citOut">100</output> mg/serving</label>
+          </div>
+          <input id="citThr" type="range" min="0" max="3000" step="50" value="100" />
+          <div class="muted">Citrate+ foods highlighted (CaOx & CaP)</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th data-k="food">Food</th>
+              <th title="mg/100g (amino acid)">Cystine</th>
+              <th title="mg/100g (proxy for uric acid risk)">Purines</th>
+              <th title="mg/serving">Calcium</th>
+              <th title="mg/serving">Phosphorus</th>
+              <th title="mg/serving">Magnesium</th>
+              <th title="mg/serving">Oxalate</th>
+              <th title="mg/serving">Citrate</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
+          <tbody id="body"></tbody>
+        </table>
+      </div>
+      <div class="footer">
+        Data shown are examples. Import your clinic list or a USDA/clinic export for accuracy. “Struvite” isn’t a food nutrient; that mode just reminds you infection-driven stones need UTI treatment.
+      </div>
+    </div>
+
+    <details style="margin-top:16px" class="panel" id="guide">
+      <summary>Guide (what to favor/limit)</summary>
+      <div style="margin-top:8px;line-height:1.5">
+        <ul>
+          <li><b>Hydration</b>: #1 unless your clinician advised otherwise.</li>
+          <li><b>Calcium oxalate (CaOx)</b>: keep <b>normal calcium</b> intake; lower sodium; moderate animal protein. Calcium and magnesium at meals reduce oxalate availability; citrate in urine inhibits CaOx.</li>
+          <li><b>Calcium phosphate (CaP)</b>: overlaps with CaOx; watch <b>phosphorus</b> (esp. phosphate additives) and sodium; citrate can inhibit CaP. Work with your clinician on urine pH and calcium strategy.</li>
+          <li><b>Uric acid</b>: use <b>purine</b> content as the practical proxy; aim for low-purine choices and good hydration.</li>
+          <li><b>Cystine</b>: high fluids are key; lower sodium; avoid excessive protein. Table shows amino-acid cystine for context.</li>
+          <li><b>Struvite</b>: infection-driven; treat UTIs—diet list is secondary.</li>
+        </ul>
+        <p class="muted">This tool helps you scan foods; your clinician’s plan always comes first.</p>
+      </div>
+    </details>
+  </div>
+
+<script>
+/* ===== Starter dataset (edit/replace freely) =====
+Fields:
+- food (string)
+- cystine_mg_per_100g (number)  amino acid “cystine”
+- purines_mg_per_100g (number)  proxy for uric-acid stone risk
+- calcium_mg (per serving listed below)
+- phosphorus_mg (per serving)
+- magnesium_mg (per serving)
+- oxalate_mg (per serving)
+- citrate_mg (per serving)
+- serving (string) human-readable
+Values are approximate demo placeholders; import your own file for accuracy.
+*/
+const demo = [
+  {food:"Lemon juice (fresh)", serving:"30 ml (2 Tbsp)", cystine_mg_per_100g: 0, purines_mg_per_100g: 0, calcium_mg:2, phosphorus_mg:1, magnesium_mg:1, oxalate_mg:2, citrate_mg:600},
+  {food:"Orange", serving:"1 medium", cystine_mg_per_100g: 0, purines_mg_per_100g: 0, calcium_mg:60, phosphorus_mg:15, magnesium_mg:15, oxalate_mg:5, citrate_mg:300},
+  {food:"Greek yogurt, low-fat", serving:"170 g (6 oz)", cystine_mg_per_100g: 90, purines_mg_per_100g: 15, calcium_mg:180, phosphorus_mg:140, magnesium_mg:20, oxalate_mg:2, citrate_mg:0},
+  {food:"Sardines in oil", serving:"85 g (3 oz)", cystine_mg_per_100g: 360, purines_mg_per_100g: 480, calcium_mg:325, phosphorus_mg:420, magnesium_mg:40, oxalate_mg:2, citrate_mg:0},
+  {food:"Spinach, cooked", serving:"1/2 cup", cystine_mg_per_100g: 240, purines_mg_per_100g: 50, calcium_mg:120, phosphorus_mg:50, magnesium_mg:80, oxalate_mg:75, citrate_mg:0},
+  {food:"Tofu, firm", serving:"85 g (3 oz)", cystine_mg_per_100g: 70, purines_mg_per_100g: 35, calcium_mg:130, phosphorus_mg:140, magnesium_mg:40, oxalate_mg:10, citrate_mg:0},
+  {food:"Brown rice, cooked", serving:"1 cup", cystine_mg_per_100g: 40, purines_mg_per_100g: 30, calcium_mg:20, phosphorus_mg:150, magnesium_mg:80, oxalate_mg:10, citrate_mg:0},
+  {food:"Chicken breast, cooked", serving:"85 g (3 oz)", cystine_mg_per_100g: 280, purines_mg_per_100g: 130, calcium_mg:12, phosphorus_mg:180, magnesium_mg:22, oxalate_mg:2, citrate_mg:0},
+  {food:"Cola (phosphate-acidified)", serving:"355 ml (12 fl oz)", cystine_mg_per_100g: 0, purines_mg_per_100g: 0, calcium_mg:5, phosphorus_mg:60, magnesium_mg:2, oxalate_mg:0, citrate_mg:0}
+];
+
+let data = [...demo];
+
+const els = {
+  q: document.getElementById('q'),
+  clr: document.getElementById('clr'),
+  stone: document.getElementById('stone'),
+  purThr: document.getElementById('purThr'),
+  oxaThr: document.getElementById('oxaThr'),
+  cysThr: document.getElementById('cysThr'),
+  calThr: document.getElementById('calThr'),
+  phosThr: document.getElementById('phosThr'),
+  magThr: document.getElementById('magThr'),
+  citThr: document.getElementById('citThr'),
+  purOut: document.getElementById('purOut'),
+  oxaOut: document.getElementById('oxaOut'),
+  cysOut: document.getElementById('cysOut'),
+  calOut: document.getElementById('calOut'),
+  phosOut: document.getElementById('phosOut'),
+  magOut: document.getElementById('magOut'),
+  citOut: document.getElementById('citOut'),
+  body: document.getElementById('body'),
+  file: document.getElementById('file'),
+  export: document.getElementById('export'),
+  guideBtn: document.getElementById('guideBtn'),
+  guide: document.getElementById('guide')
+};
+
+function fmt(n){ return (n ?? n===0) ? (+n).toLocaleString() : '—'; }
+
+function badges(row){
+  const b=[];
+  const purT=+els.purThr.value, oxaT=+els.oxaThr.value, cysT=+els.cysThr.value, calT=+els.calThr.value, phosT=+els.phosThr.value, magT=+els.magThr.value, citT=+els.citThr.value;
+  const focus = els.stone.value;
+
+  // Helpful badges
+  if((focus==='caox' || focus==='cap' || focus==='all') && row.citrate_mg >= citT) b.push('<span class="pill good">Citrate+</span>');
+  if((focus==='caox' || focus==='all') && row.magnesium_mg >= magT) b.push('<span class="pill good">Magnesium+</span>');
+  if((focus==='caox' || focus==='all') && row.calcium_mg >= calT) b.push('<span class="pill good">Calcium with meals</span>');
+  if((focus==='cap' || focus==='all') && row.calcium_mg >= calT) b.push('<span class="pill good">Calcium source</span>');
+
+  // Cautions by focus
+  if((focus==='uric' || focus==='all') && row.purines_mg_per_100g >= purT) b.push('<span class="pill bad">High purines</span>');
+  if((focus==='caox' || focus==='all') && row.oxalate_mg >= oxaT) b.push('<span class="pill bad">High oxalate</span>');
+  if((focus==='cys' || focus==='all') && row.cystine_mg_per_100g >= cysT) b.push('<span class="pill warn">Higher cystine AA</span>');
+  if((focus==='cap' || focus==='all') && row.phosphorus_mg >= phosT) b.push('<span class="pill warn">High phosphorus</span>');
+  if(focus==='struvite'){ b.push('<span class="pill warn">UTI-driven stone—treat infection</span>'); }
+
+  return b.join(' ');
+}
+
+function render(){
+  const q = els.q.value.trim().toLowerCase();
+  const rows = data.filter(r => !q || r.food.toLowerCase().includes(q));
+  els.body.innerHTML = rows.map(r => `
+    <tr class="row">
+      <td><div><div>${r.food}</div><div class="muted">${r.serving||''}</div></div></td>
+      <td>${fmt(r.cystine_mg_per_100g)}</td>
+      <td>${fmt(r.purines_mg_per_100g)}</td>
+      <td>${fmt(r.calcium_mg)}</td>
+      <td>${fmt(r.phosphorus_mg)}</td>
+      <td>${fmt(r.magnesium_mg)}</td>
+      <td>${fmt(r.oxalate_mg)}</td>
+      <td>${fmt(r.citrate_mg)}</td>
+      <td>${badges(r)}</td>
+    </tr>
+  `).join('');
+  // Outputs
+  els.purOut.value = els.purThr.value;
+  els.oxaOut.value = els.oxaThr.value;
+  els.cysOut.value = els.cysThr.value;
+  els.calOut.value = els.calThr.value;
+  els.phosOut.value = els.phosThr.value;
+  els.magOut.value = els.magThr.value;
+  els.citOut.value = els.citThr.value;
+}
+
+// Events
+['input','change','keyup'].forEach(ev=>{
+  els.q.addEventListener(ev, render);
+  els.purThr.addEventListener(ev, render);
+  els.oxaThr.addEventListener(ev, render);
+  els.cysThr.addEventListener(ev, render);
+  els.calThr.addEventListener(ev, render);
+  els.phosThr.addEventListener(ev, render);
+  els.magThr.addEventListener(ev, render);
+  els.citThr.addEventListener(ev, render);
+  els.stone.addEventListener(ev, render);
+});
+els.clr.onclick = ()=>{ els.q.value=''; render(); };
+els.guideBtn.onclick = ()=> els.guide.open = !els.guide.open;
+
+// Import CSV or JSON
+els.file.addEventListener('change', (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      let txt = reader.result;
+      if(typeof txt !== 'string') txt = new TextDecoder().decode(txt);
+      if(f.name.endsWith('.json')){
+        const arr = JSON.parse(txt);
+        if(!Array.isArray(arr)) throw new Error('JSON must be an array of rows');
+        data = arr;
+        render();
+      } else {
+        // Simple CSV parser (expects header names matching keys below)
+        const lines = txt.trim().split(/\r?\n/);
+        const head = lines.shift().split(',').map(s=>s.trim());
+        data = lines.map(line=>{
+          const cells = line.split(',').map(s=>s.trim());
+          const obj = {};
+          head.forEach((h,i)=> obj[h] = cells[i]);
+          // coerce numeric fields
+          ['cystine_mg_per_100g','purines_mg_per_100g','calcium_mg','phosphorus_mg','magnesium_mg','oxalate_mg','citrate_mg']
+            .forEach(k=>{ if(obj[k]!==undefined) obj[k] = Number(obj[k]) });
+          return obj;
+        });
+        render();
+      }
+    } catch(err){
+      alert('Error loading file: '+err.message);
+    }
+  };
+  reader.readAsText(f);
+});
+
+// Export visible table as CSV
+els.export.addEventListener('click', ()=>{
+  const rows = [['food','serving','cystine_mg_per_100g','purines_mg_per_100g','calcium_mg','phosphorus_mg','magnesium_mg','oxalate_mg','citrate_mg']];
+  const q = els.q.value.trim().toLowerCase();
+  data.filter(r => !q || r.food.toLowerCase().includes(q))
+      .forEach(r => rows.push([
+        r.food, r.serving || '',
+        r.cystine_mg_per_100g ?? '',
+        r.purines_mg_per_100g ?? '',
+        r.calcium_mg ?? '',
+        r.phosphorus_mg ?? '',
+        r.magnesium_mg ?? '',
+        r.oxalate_mg ?? '',
+        r.citrate_mg ?? ''
+      ]));
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), {href:url, download:'foods_visible.csv'});
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+});
+
+render();
+</script>
+</body>
+</html>

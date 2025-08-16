@@ -1,0 +1,1 @@
+help me make a visual food micro nutrient stats viewer, it will list foods and the amount of Cystine / uric acid / calcium / phosphate / struvite in them. So i know what to avoid eating while i have kidney stones. I also need to know things like (eat more magnesium, because it binds to calcium. can you help me plan and make this Offline Site with html and JS?
