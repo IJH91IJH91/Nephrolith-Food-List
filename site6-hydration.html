@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kidney Stone Food Guide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      font-weight: 300;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .controls {
+      padding: 25px;
+      background: rgba(76, 175, 80, 0.05);
+      border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
+    .search-filter-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 15px 50px 15px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 16px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .filter-btn.eat {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .filter-btn.avoid {
+      background: #f44336;
+      color: white;
+    }
+
+    .filter-btn.all {
+      background: #2196F3;
+      color: white;
+    }
+
+    .filter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .legend {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    .legend-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+
+    .eat-color { background: #4CAF50; }
+    .avoid-color { background: #f44336; }
+    .caution-color { background: #ff9800; }
+
+    .table-container {
+      padding: 25px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    th {
+      background: linear-gradient(135deg, #37474f 0%, #263238 100%);
+      color: white;
+      padding: 20px 15px;
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+
+    th:hover {
+      background: linear-gradient(135deg, #455a64 0%, #37474f 100%);
+    }
+
+    th::after {
+      content: '↕️';
+      position: absolute;
+      right: 8px;
+      opacity: 0.6;
+    }
+
+    td {
+      padding: 18px 15px;
+      text-align: center;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+
+    tr {
+      transition: all 0.3s ease;
+    }
+
+    tr.eat {
+      background: rgba(76, 175, 80, 0.1);
+      border-left: 5px solid #4CAF50;
+    }
+
+    tr.avoid {
+      background: rgba(244, 67, 54, 0.1);
+      border-left: 5px solid #f44336;
+    }
+
+    tr.caution {
+      background: rgba(255, 152, 0, 0.1);
+      border-left: 5px solid #ff9800;
+    }
+
+    tr:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .food-name {
+      font-weight: 600;
+      font-size: 1.1em;
+    }
+
+    .nutrient-badge {
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-weight: 600;
+      font-size: 0.85em;
+    }
+
+    .high { background: #e8f5e8; color: #2e7d32; }
+    .medium { background: #fff3e0; color: #f57c00; }
+    .low { background: #ffebee; color: #c62828; }
+
+    .recommendation {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .eat-rec {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .avoid-rec {
+      background: #f44336;
+      color: white;
+    }
+
+    .caution-rec {
+      background: #ff9800;
+      color: white;
+    }
+
+    .stats {
+      padding: 25px;
+      background: rgba(76, 175, 80, 0.05);
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .stat-item {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+
+    .stat-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2em; }
+      .search-filter-row { flex-direction: column; align-items: stretch; }
+      .filter-buttons { justify-content: center; }
+      .legend { flex-direction: column; align-items: center; }
+      th, td { padding: 12px 8px; font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🥗 Kidney Stone Food Guide</h1>
+      <p>Foods to eat more of (high citrate & magnesium) vs. foods to limit (high oxalates & purines)</p>
+    </div>
+
+    <div class="controls">
+      <div class="search-filter-row">
+        <div class="search-box">
+          <input type="text" id="search" placeholder="Search foods...">
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="filter-buttons">
+          <button class="filter-btn all" onclick="filterByRecommendation('all')">All Foods</button>
+          <button class="filter-btn eat" onclick="filterByRecommendation('eat')">✓ Should Eat</button>
+          <button class="filter-btn avoid" onclick="filterByRecommendation('avoid')">✗ Should Avoid</button>
+        </div>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-circle eat-color"></div>
+          <span>Beneficial - Eat More</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle caution-color"></div>
+          <span>Use Caution - Moderate</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle avoid-color"></div>
+          <span>Problematic - Limit/Avoid</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="foodTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Food</th>
+            <th onclick="sortTable(1)">Hydration</th>
+            <th onclick="sortTable(2)">Magnesium</th>
+            <th onclick="sortTable(3)">Citrate</th>
+            <th onclick="sortTable(4)">Calcium</th>
+            <th onclick="sortTable(5)">Oxalates</th>
+            <th onclick="sortTable(6)">Purines</th>
+            <th onclick="sortTable(7)">Recommendation</th>
+            <th onclick="sortTable(8)">Score</th>
+          </tr>
+        </thead>
+        <tbody id="foodTableBody">
+          </tbody>
+      </table>
+    </div>
+
+    <div class="stats" id="stats">
+      </div>
+  </div>
+
+  <script>
+    const foods = [
+      {name: "Spinach", hydration: "Medium", magnesium: "High", citrate: "Low", calcium: "Medium", oxalates: "High", purines: "Low"},
+      {name: "Almonds", hydration: "Low", magnesium: "High", citrate: "Low", calcium: "High", oxalates: "High", purines: "Low"},
+      {name: "Avocado", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Lemon", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Orange", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Tomato", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Black Beans", hydration: "Medium", magnesium: "High", citrate: "Low", calcium: "Medium", oxalates: "Medium", purines: "Medium"},
+      {name: "Dark Chocolate", hydration: "Low", magnesium: "High", citrate: "Low", calcium: "Medium", oxalates: "High", purines: "Low"},
+      {name: "Red Meat", hydration: "Medium", magnesium: "Low", citrate: "Low", calcium: "High", oxalates: "Low", purines: "High"},
+      {name: "Strawberries", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Tuna", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "High"},
+      {name: "Eggs", hydration: "Medium", magnesium: "Low", citrate: "Low", calcium: "Medium", oxalates: "Low", purines: "Low"},
+      {name: "Chicken Breast", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Medium"},
+      {name: "Baked Beans", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Medium", oxalates: "Medium", purines: "Medium"},
+      {name: "Cucumber", hydration: "High", magnesium: "Low", citrate: "Medium", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Iceberg Lettuce", hydration: "High", magnesium: "Low", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Mayo", hydration: "Low", magnesium: "Low", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Rice", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Pasta", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Oats", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Medium", oxalates: "Medium", purines: "Low"},
+      {name: "Broccoli", hydration: "High", magnesium: "Medium", citrate: "Medium", calcium: "Medium", oxalates: "Low", purines: "Low"},
+      {name: "Banana", hydration: "Medium", magnesium: "Medium", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Blueberries", hydration: "High", magnesium: "Low", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Salmon", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "High"},
+      {name: "Greek Yogurt", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "High", oxalates: "Low", purines: "Low"},
+      {name: "Couscous", hydration: "Medium", magnesium: "Medium", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Watermelon", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Cantaloupe", hydration: "High", magnesium: "Low", citrate: "High", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Bell Pepper", hydration: "High", magnesium: "Low", citrate: "Medium", calcium: "Low", oxalates: "Low", purines: "Low"},
+      {name: "Celery", hydration: "High", magnesium: "Low", citrate: "Low", calcium: "Low", oxalates: "Low", purines: "Low"}
+    ];
+
+    function calculateRecommendation(food) {
+      let score = 0;
+      
+      // Positive factors (want high)
+      if (food.hydration === "High") score += 2;
+      else if (food.hydration === "Medium") score += 1;
+        
+      if (food.magnesium === "High") score += 3;
+      else if (food.magnesium === "Medium") score += 2;
+      
+      if (food.citrate === "High") score += 3;
+      else if (food.citrate === "Medium") score += 2;
+      
+      // Negative factors (want low)
+      if (food.oxalates === "High") score -= 3;
+      else if (food.oxalates === "Medium") score -= 2;
+      else if (food.oxalates === "Low") score += 1;
+      
+      if (food.purines === "High") score -= 3;
+      else if (food.purines === "Medium") score -= 2;
+      else if (food.purines === "Low") score += 1;
+      
+      if (food.calcium === "High") score -= 3;
+      else if (food.calcium === "Medium") score -= 2;
+      else if (food.calcium === "Low") score += 1;
+
+      let recommendation;
+      if (score >= 3) recommendation = "eat"; // Adjusted threshold due to new hydration score
+      else if (score <= -2) recommendation = "avoid";
+      else recommendation = "caution";
+      
+      return { recommendation, score };
+    }
+
+    function populateTable() {
+      const tbody = document.getElementById('foodTableBody');
+      tbody.innerHTML = '';
+      
+      foods.forEach(food => {
+        const result = calculateRecommendation(food);
+        const row = document.createElement('tr');
+        row.className = result.recommendation;
+        row.setAttribute('data-recommendation', result.recommendation);
+        
+        row.innerHTML = `
+          <td class="food-name">${food.name}</td>
+          <td><span class="nutrient-badge ${food.hydration.toLowerCase()}">${food.hydration}</span></td>
+          <td><span class="nutrient-badge ${food.magnesium.toLowerCase()}">${food.magnesium}</span></td>
+          <td><span class="nutrient-badge ${food.citrate.toLowerCase()}">${food.citrate}</span></td>
+          <td><span class="nutrient-badge ${food.calcium.toLowerCase()}">${food.calcium}</span></td>
+          <td><span class="nutrient-badge ${food.oxalates.toLowerCase()}">${food.oxalates}</span></td>
+          <td><span class="nutrient-badge ${food.purines.toLowerCase()}">${food.purines}</span></td>
+          <td><span class="recommendation ${result.recommendation}-rec">${
+            result.recommendation === 'eat' ? '✓ Eat More' :
+            result.recommendation === 'avoid' ? '✗ Limit/Avoid' : '⚠ Moderate'
+          }</span></td>
+          <td>${result.score}</td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+      
+      updateStats();
+    }
+
+    function updateStats() {
+      const eatCount = foods.filter(f => calculateRecommendation(f).recommendation === 'eat').length;
+      const avoidCount = foods.filter(f => calculateRecommendation(f).recommendation === 'avoid').length;
+      const cautionCount = foods.filter(f => calculateRecommendation(f).recommendation === 'caution').length;
+      
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-item">
+          <div class="stat-number" style="color: #4CAF50">${eatCount}</div>
+          <div class="stat-label">Foods to Eat More</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" style="color: #ff9800">${cautionCount}</div>
+          <div class="stat-label">Use in Moderation</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" style="color: #f44336">${avoidCount}</div>
+          <div class="stat-label">Foods to Limit</div>
+        </div>
+      `;
+    }
+
+    function filterByRecommendation(type) {
+      const rows = document.querySelectorAll("#foodTableBody tr");
+      rows.forEach(row => {
+        if (type === 'all' || row.getAttribute('data-recommendation') === type) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+      
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.style.opacity = '0.7');
+      event.target.style.opacity = '1';
+    }
+
+    document.getElementById('search').addEventListener('keyup', function() {
+      const input = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#foodTableBody tr");
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+      });
+    });
+
+    let sortDirection = {};
+    function sortTable(colIndex) {
+      const tbody = document.getElementById("foodTableBody");
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const isAsc = sortDirection[colIndex] !== false;
+      
+      const nutrientOrder = { "high": 3, "medium": 2, "low": 1 };
+
+      rows.sort((a, b) => {
+        let valA = a.children[colIndex].innerText.trim();
+        let valB = b.children[colIndex].innerText.trim();
+        
+        // Handle recommendation column
+        if (colIndex === 7) {
+          const recOrder = { "✓ eat more": 3, "⚠ moderate": 2, "✗ limit/avoid": 1 };
+          valA = recOrder[valA.toLowerCase()] || valA;
+          valB = recOrder[valB.toLowerCase()] || valB;
+        } 
+        // Handle nutrient & hydration columns
+        else if (colIndex >= 1 && colIndex <= 6) {
+          valA = nutrientOrder[valA.toLowerCase()] || valA;
+          valB = nutrientOrder[valB.toLowerCase()] || valB;
+        }
+        // Handle Score column
+        else if (colIndex === 8) {
+          valA = parseInt(valA, 10);
+          valB = parseInt(valB, 10);
+        }
+
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
+
+      sortDirection[colIndex] = !isAsc;
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Initialize the table
+    populateTable();
+  </script>
+</body>
+</html>
